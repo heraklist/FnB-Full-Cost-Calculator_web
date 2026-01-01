@@ -22,7 +22,7 @@ export interface Ingredient {
   unit: string;
   price: number;
   supplier?: string;
-  waste_percent: number;
+  waste_percent?: number;
   notes?: string;
   created_at?: string;
   updated_at?: string;
@@ -35,7 +35,7 @@ export interface Recipe {
   servings: number;
   prep_time_minutes: number;
   notes?: string;
-  ingredients: RecipeIngredient[];
+  ingredients?: RecipeIngredient[];
   created_at?: string;
   updated_at?: string;
 }
@@ -69,17 +69,17 @@ export interface Event {
   event_location?: string | null;
   guests: number;
   pricing_mode: EventPricingMode;
-  staff_count: number;
-  staff_hours: number;
-  include_staff_in_price: boolean;
-  transport_km: number;
-  equipment_cost: number;
+  staff_count?: number;
+  staff_hours?: number;
+  include_staff_in_price?: boolean;
+  transport_km?: number;
+  equipment_cost?: number;
   equipment_notes?: string | null;
   notes?: string | null;
   status: EventStatus;
   created_at?: string;
   updated_at?: string;
-  recipes: EventRecipe[];
+  recipes?: EventRecipe[];
 }
 
 export type CostingMode = 'restaurant' | 'catering' | 'private_chef';

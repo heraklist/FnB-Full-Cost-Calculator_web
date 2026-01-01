@@ -10,6 +10,7 @@ interface UseEventsReturn {
   updateEvent: (event: Event) => Promise<void>;
   deleteEvent: (id: number) => Promise<void>;
   updateEventStatus: (id: number, status: EventStatus) => Promise<void>;
+  updateStatus: (id: number, status: EventStatus) => Promise<void>; // Alias
   refresh: () => Promise<void>;
 }
 
@@ -71,6 +72,7 @@ export function useEvents(enabled: boolean = true): UseEventsReturn {
     updateEvent,
     deleteEvent,
     updateEventStatus,
+    updateStatus: updateEventStatus, // Alias for backward compatibility
     refresh: fetchEvents
   };
 }

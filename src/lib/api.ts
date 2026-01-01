@@ -71,13 +71,15 @@ export interface EventRecipe {
 }
 
 // Ingredients
-export async function createIngredient(ingredient: Ingredient) {
+export async function createIngredient(ingredient: Ingredient): Promise<number> {
   const userId = await requireUser();
   const { data, error } = await supabase
     .from('ingredients')
-    .insert([{ ...ingredient, user_id: userId }] as any);
+    .insert([{ ...ingredient, user_id: userId }] as any)
+    .select('id')
+    .single();
   if (error) throw error;
-  return data?.[0];
+  return data?.id || 0;
 }
 
 export async function getIngredients() {
@@ -105,16 +107,18 @@ export async function deleteIngredient(id: number) {
 }
 
 // Recipes
-export async function createRecipe(recipe: Recipe) {
+export async function createRecipe(recipe: Recipe): Promise<number> {
   const userId = await requireUser();
   const { data: recipeData, error: recipeError } = await supabase
     .from('recipes')
-    .insert([{ ...recipe, user_id: userId }] as any);
+    .insert([{ ...recipe, user_id: userId }] as any)
+    .select('id')
+    .single();
 
   if (recipeError) throw recipeError;
-  if (!recipeData || !recipeData[0]) throw new Error('Failed to create recipe');
+  if (!recipeData?.id) throw new Error('Failed to create recipe');
 
-  const recipeId = recipeData[0].id;
+  const recipeId = recipeData.id;
 
   // Insert recipe ingredients
   if (recipe.ingredients && recipe.ingredients.length > 0) {
@@ -170,16 +174,18 @@ export async function deleteRecipe(id: number) {
 }
 
 // Events
-export async function createEvent(event: Event) {
+export async function createEvent(event: Event): Promise<number> {
   const userId = await requireUser();
   const { data: eventData, error: eventError } = await supabase
     .from('events')
-    .insert([{ ...event, user_id: userId }] as any);
+    .insert([{ ...event, user_id: userId }] as any)
+    .select('id')
+    .single();
 
   if (eventError) throw eventError;
-  if (!eventData || !eventData[0]) throw new Error('Failed to create event');
+  if (!eventData?.id) throw new Error('Failed to create event');
 
-  const eventId = eventData[0].id;
+  const eventId = eventData.id;
 
   // Insert event recipes
   if (event.recipes && event.recipes.length > 0) {
@@ -197,7 +203,7 @@ export async function createEvent(event: Event) {
     if (recipeError) throw recipeError;
   }
 
-  return eventData[0];
+  return eventId;
 }
 
 export async function getEvents() {
@@ -241,23 +247,23 @@ export async function deleteEvent(id: number) {
   if (error) throw error;
 }
 
-export async function duplicateRecipe(recipeId: number): Promise<Recipe | undefined> {
+export async function duplicateRecipe(recipeId: number): Promise<number> {
   // Get original recipe with ingredients
   const recipe = await getRecipe(recipeId);
-  if (!recipe) return undefined;
+  if (!recipe) throw new Error('Recipe not found');
 
   // Create new recipe without ID and ingredients
   const { id, created_at, updated_at, ingredients, ...recipeData } = recipe;
-  const newRecipe = await createRecipe({
+  const newRecipeId = await createRecipe({
     ...recipeData,
     name: `${recipeData.name} (Copy)`
-  });
+  } as Recipe);
 
   // Copy ingredients if any
-  if (ingredients && ingredients.length > 0 && newRecipe?.id) {
+  if (ingredients && ingredients.length > 0) {
     for (const ing of ingredients) {
       await supabase.from('recipe_ingredients').insert({
-        recipe_id: newRecipe.id,
+        recipe_id: newRecipeId,
         ingredient_id: ing.ingredient_id,
         quantity: ing.quantity,
         unit: ing.unit
@@ -265,7 +271,7 @@ export async function duplicateRecipe(recipeId: number): Promise<Recipe | undefi
     }
   }
 
-  return newRecipe;
+  return newRecipeId;
 }
 
 // Settings
