@@ -69,7 +69,7 @@ function RecipesTab() {
     return recipes.filter(recipe => {
       const matchesSearch = searchQuery === '' || 
         recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        recipe.ingredients.some(ri => 
+        (recipe.ingredients || []).some(ri => 
           ri.ingredient_name?.toLowerCase().includes(searchQuery.toLowerCase())
         );
       const matchesCategory = filterCategory === '' || recipe.category === filterCategory;
@@ -119,7 +119,7 @@ function RecipesTab() {
       servings: recipe.servings,
       prep_time_minutes: recipe.prep_time_minutes,
       notes: recipe.notes || '',
-      ingredients: recipe.ingredients.map(ri => ({
+      ingredients: (recipe.ingredients || []).map(ri => ({
         ...ri,
         ingredient_name: ri.ingredient_name || ingredients.find(i => i.id === ri.ingredient_id)?.name,
       })),
@@ -164,7 +164,7 @@ function RecipesTab() {
     const scaledRecipe: Recipe = {
       ...recipe,
       servings: newServings,
-      ingredients: recipe.ingredients.map(ri => ({
+      ingredients: (recipe.ingredients || []).map(ri => ({
         ...ri,
         quantity: Number((ri.quantity * factor).toFixed(3))
       }))

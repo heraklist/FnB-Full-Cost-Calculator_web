@@ -29,11 +29,11 @@ export default function RecipeCard({ recipe, onEdit, onDelete, onDuplicate, onSc
       <div className="mb-2">
         <strong>Υλικά:</strong>
         <ul className="list-disc list-inside text-sm mt-1">
-          {recipe.ingredients.slice(0, 4).map((ri, i) => (
+          {(recipe.ingredients || []).slice(0, 4).map((ri, i) => (
             <li key={i}>{ri.ingredient_name} - {ri.quantity} {ri.unit}</li>
           ))}
-          {recipe.ingredients.length > 4 && (
-            <li className="text-xs text-muted-500">+{recipe.ingredients.length - 4} ακόμα...</li>
+          {(recipe.ingredients || []).length > 4 && (
+            <li className="text-xs text-muted-500">+{(recipe.ingredients || []).length - 4} ακόμα...</li>
           )}
         </ul>
       </div>

@@ -50,7 +50,8 @@ export function useEvents(enabled: boolean = true): UseEventsReturn {
   }, [fetchEvents]);
 
   const updateEvent = useCallback(async (event: Event) => {
-    await api.updateEvent(event);
+    if (!event.id) throw new Error('Event ID required');
+    await api.updateEvent(event.id, event);
     await fetchEvents();
   }, [fetchEvents]);
 

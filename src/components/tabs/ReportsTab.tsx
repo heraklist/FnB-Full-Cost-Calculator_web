@@ -96,7 +96,7 @@ function ReportsTab() {
 
     filteredEvents.forEach(event => {
       if (event.status === 'completed' || event.status === 'confirmed') {
-        event.recipes.forEach(er => {
+        (event.recipes || []).forEach(er => {
           const recipe = recipes.find(r => r.id === er.recipe_id);
           if (!recipe) return;
           

@@ -49,7 +49,8 @@ export function useRecipes(enabled: boolean = true): UseRecipesReturn {
   }, [fetchRecipes]);
 
   const updateRecipe = useCallback(async (recipe: Recipe) => {
-    await api.updateRecipe(recipe);
+    if (!recipe.id) throw new Error('Recipe ID required');
+    await api.updateRecipe(recipe.id, recipe);
     await fetchRecipes();
   }, [fetchRecipes]);
 

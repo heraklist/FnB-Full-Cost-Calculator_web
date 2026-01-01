@@ -48,7 +48,8 @@ export function useIngredients(enabled: boolean = true): UseIngredientsReturn {
   }, [fetchIngredients]);
 
   const updateIngredient = useCallback(async (ingredient: Ingredient) => {
-    await api.updateIngredient(ingredient);
+    if (!ingredient.id) throw new Error('Ingredient ID required');
+    await api.updateIngredient(ingredient.id, ingredient);
     await fetchIngredients();
   }, [fetchIngredients]);
 

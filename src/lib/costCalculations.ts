@@ -103,7 +103,7 @@ export function calculateFoodCost(
 ): number {
   let foodCost = 0;
   
-  for (const ri of recipe.ingredients) {
+  for (const ri of recipe.ingredients || []) {
     const ing = ingredients.find(i => i.id === ri.ingredient_id);
     if (ing) {
       // Μετατροπή ποσότητας σε standardized base unit
@@ -112,7 +112,7 @@ export function calculateFoodCost(
       // Υπολογισμός standardized ποσότητας (π.χ. 100g -> 0.1 για 1kg)
       const standardizedQty = recipeQuantityInBase / ingredientQuantityInBase;
       // Apply waste percentage
-      foodCost += standardizedQty * ing.price * (1 + ing.waste_percent / PERCENT_FACTOR);
+      foodCost += standardizedQty * ing.price * (1 + (ing.waste_percent || 0) / PERCENT_FACTOR);
     }
   }
   
@@ -290,7 +290,7 @@ export function calculateEventTotals(
   let perPersonFromRecipes = 0;
   let costTotal = 0;
 
-  for (const er of event.recipes) {
+  for (const er of event.recipes || []) {
     const recipe = recipes.find(r => r.id === er.recipe_id);
     if (!recipe) continue;
     
@@ -310,10 +310,10 @@ export function calculateEventTotals(
   const staffCost = !settings
     ? 0
     : settings.staff_rate_type === 'hourly'
-      ? event.staff_count * event.staff_hours * settings.staff_hourly_rate
-      : event.staff_count * settings.staff_daily_rate;
+      ? (event.staff_count || 0) * (event.staff_hours || 0) * (settings.staff_hourly_rate || 0)
+      : (event.staff_count || 0) * (settings.staff_daily_rate || 0);
   
-  const transportCost = settings ? settings.transport_cost_per_km * event.transport_km : 0;
+  const transportCost = settings ? (settings.transport_cost_per_km || 0) * (event.transport_km || 0) : 0;
   const equipmentCost = event.equipment_cost || 0;
   const extras = (event.include_staff_in_price ? staffCost : 0) + transportCost + equipmentCost;
 

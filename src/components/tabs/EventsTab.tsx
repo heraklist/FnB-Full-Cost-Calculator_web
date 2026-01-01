@@ -330,7 +330,7 @@ function EventsTab() {
         client_email: evt.client_email || null,
         client_phone: evt.client_phone || null,
         guests: evt.guests,
-        menu_items: evt.recipes.map(er => {
+        menu_items: (evt.recipes || []).map(er => {
           const recipe = recipes.find(r => r.id === er.recipe_id);
           const pricing = recipe ? sharedGetRecipePricing(recipe, ingredients, settings) : { pricePerServing: 0 };
           const pricePerServing = er.price_override ?? pricing.pricePerServing;
@@ -800,8 +800,8 @@ function EventsTab() {
 
                     <div className="event-recipes">
                       <h4>Μενού</h4>
-                      {evt.recipes.length === 0 && <p className="empty-state">Προσθέστε συνταγές για να κοστολογήσετε</p>}
-                      {evt.recipes.map((er) => {
+                      {(evt.recipes || []).length === 0 && <p className="empty-state">Προσθέστε συνταγές για να κοστολογήσετε</p>}
+                      {(evt.recipes || []).map((er) => {
                         const recipe = recipes.find(r => r.id === er.recipe_id);
                         if (!recipe) return null;
                         const pricing = getRecipePricing(recipe);
