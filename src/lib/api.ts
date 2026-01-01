@@ -1,5 +1,9 @@
 import { supabase, requireUser } from './supabase';
 
+// Use untyped client for operations where strict typing causes issues
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = supabase as any;
+
 // Types
 export interface Ingredient {
   id?: number;
@@ -79,7 +83,7 @@ export async function createIngredient(ingredient: Ingredient): Promise<number> 
     .select('id')
     .single();
   if (error) throw error;
-  return data?.id || 0;
+  return (data as any)?.id || 0;
 }
 
 export async function getIngredients() {
@@ -93,10 +97,11 @@ export async function getIngredients() {
 }
 
 export async function updateIngredient(id: number, updates: Partial<Ingredient>) {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('ingredients')
-    .update(updates as any)
-    .eq('id', id);
+    .update(updates)
+    .eq('id', id)
+    .select();
   if (error) throw error;
   return data?.[0];
 }
@@ -116,9 +121,10 @@ export async function createRecipe(recipe: Recipe): Promise<number> {
     .single();
 
   if (recipeError) throw recipeError;
-  if (!recipeData?.id) throw new Error('Failed to create recipe');
+  const rd = recipeData as any;
+  if (!rd?.id) throw new Error('Failed to create recipe');
 
-  const recipeId = recipeData.id;
+  const recipeId = rd.id;
 
   // Insert recipe ingredients
   if (recipe.ingredients && recipe.ingredients.length > 0) {
@@ -136,7 +142,28 @@ export async function createRecipe(recipe: Recipe): Promise<number> {
     if (ingredientError) throw ingredientError;
   }
 
-  return recipeData[0];
+  return recipeId;
+}
+
+export async function getRecipe(id: number): Promise<Recipe | null> {
+  const userId = await requireUser();
+  const { data, error } = await supabase
+    .from('recipes')
+    .select(`
+      *,
+      recipe_ingredients(
+        *,
+        ingredients(*)
+      )
+    `)
+    .eq('id', id)
+    .eq('user_id', userId)
+    .single();
+  if (error) {
+    if (error.code === 'PGRST116') return null;
+    throw error;
+  }
+  return data as Recipe;
 }
 
 export async function getRecipes() {
@@ -156,10 +183,11 @@ export async function getRecipes() {
 }
 
 export async function updateRecipe(id: number, updates: Partial<Recipe>) {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('recipes')
-    .update(updates as any)
-    .eq('id', id);
+    .update(updates)
+    .eq('id', id)
+    .select();
   if (error) throw error;
   return data?.[0];
 }
@@ -183,9 +211,10 @@ export async function createEvent(event: Event): Promise<number> {
     .single();
 
   if (eventError) throw eventError;
-  if (!eventData?.id) throw new Error('Failed to create event');
+  const ed = eventData as any;
+  if (!ed?.id) throw new Error('Failed to create event');
 
-  const eventId = eventData.id;
+  const eventId = ed.id;
 
   // Insert event recipes
   if (event.recipes && event.recipes.length > 0) {
@@ -230,10 +259,11 @@ export async function getEvents() {
 }
 
 export async function updateEvent(id: number, updates: Partial<Event>) {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('events')
-    .update(updates as any)
-    .eq('id', id);
+    .update(updates)
+    .eq('id', id)
+    .select();
   if (error) throw error;
   return data?.[0];
 }
@@ -267,7 +297,7 @@ export async function duplicateRecipe(recipeId: number): Promise<number> {
         ingredient_id: ing.ingredient_id,
         quantity: ing.quantity,
         unit: ing.unit
-      });
+      } as any);
     }
   }
 
@@ -288,10 +318,11 @@ export async function getSettings() {
 
 export async function updateSettings(updates: any) {
   const userId = await requireUser();
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('settings')
     .update(updates)
-    .eq('user_id', userId);
+    .eq('user_id', userId)
+    .select();
   if (error) throw error;
   return data?.[0];
 }
@@ -308,10 +339,11 @@ export async function checkAdmin(): Promise<boolean> {
 }
 
 export async function updateEventStatus(id: number, status: string) {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('events')
-    .update({ status } as any)
-    .eq('id', id);
+    .update({ status })
+    .eq('id', id)
+    .select();
   if (error) throw error;
   return data?.[0];
 }
