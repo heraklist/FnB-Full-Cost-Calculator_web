@@ -12,3 +12,29 @@ const customRender = (
 
 export * from '@testing-library/react';
 export { customRender as render };
+
+// Additional test utilities
+export function renderWithProviders(ui: React.ReactElement, options?: Omit<RenderOptions, 'wrapper'>) {
+  return customRender(ui, options);
+}
+
+export function setupMockResponses() {
+  // Mock setup placeholder
+}
+
+export function resetMocks() {
+  // Reset mocks placeholder
+}
+
+export function createMockIngredient(overrides?: any) {
+  return {
+    id: 1,
+    name: 'Test Ingredient',
+    category: 'Test Category',
+    unit: 'kg',
+    price: 10,
+    ...overrides
+  };
+}
+
+export const mockInvoke = jest.fn();

@@ -1,4 +1,4 @@
-import { supabase, getCurrentUserId, requireUser } from './supabase';
+import { supabase, requireUser } from './supabase';
 
 // Types
 export interface Ingredient {
@@ -47,10 +47,15 @@ export interface Event {
   event_date?: string | null;
   event_location?: string | null;
   guests: number;
-  pricing_mode: 'per_person' | 'fixed';
+  pricing_mode: 'per_person' | 'fixed' | 'per_event';
   menu_description?: string | null;
   special_requests?: string | null;
   profit_margin?: number;
+  staff_count?: number;
+  staff_hours?: number;
+  include_staff_in_price?: boolean;
+  transport_km?: number;
+  equipment_cost?: number;
   created_at?: string;
   updated_at?: string;
   status: 'draft' | 'confirmed' | 'completed' | 'cancelled';
@@ -266,6 +271,20 @@ export async function updateSettings(updates: any) {
 export async function getCurrentUser() {
   const { data: { user } } = await supabase.auth.getUser();
   return user;
+}
+
+export async function checkAdmin(): Promise<boolean> {
+  // Placeholder - implement with user_roles table if needed
+  return false;
+}
+
+export async function updateEventStatus(id: number, status: string) {
+  const { data, error } = await supabase
+    .from('events')
+    .update({ status } as any)
+    .eq('id', id);
+  if (error) throw error;
+  return data?.[0];
 }
 
 export async function signOut() {
