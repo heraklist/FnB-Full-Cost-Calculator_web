@@ -1,354 +1,75 @@
-import { supabase, requireUser } from './supabase';
-
-// Use untyped client for operations where strict typing causes issues
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as any;
+import { supabase } from './supabase'
 
 // Types
 export interface Ingredient {
-  id?: number;
-  user_id?: string;
-  name: string;
-  category: string;
-  unit: string;
-  price: number;
-  supplier?: string;
-  waste_percent?: number;
-  notes?: string;
-  created_at?: string;
-  updated_at?: string;
+  id: number
+  name: string
+  category: string
+  unit: string
+  price: number
+  supplier: string | null
+  waste_percent: number
+  notes: string | null
+  created_at?: string
+  updated_at?: string
 }
 
-export interface Recipe {
-  id?: number;
-  user_id?: string;
-  name: string;
-  category: string;
-  servings: number;
-  prep_time_minutes: number;
-  notes?: string;
-  created_at?: string;
-  updated_at?: string;
-  ingredients?: RecipeIngredient[];
-}
+export type NewIngredient = Omit<Ingredient, 'id' | 'created_at' | 'updated_at'>
 
-export interface RecipeIngredient {
-  id?: number;
-  recipe_id?: number;
-  ingredient_id: number;
-  ingredients?: Ingredient;
-  quantity: number;
-  unit: string;
-}
-
-export interface Event {
-  id?: number;
-  user_id?: string;
-  name: string;
-  client_name?: string | null;
-  client_email?: string | null;
-  client_phone?: string | null;
-  event_date?: string | null;
-  event_location?: string | null;
-  guests: number;
-  pricing_mode: 'per_person' | 'per_event';
-  menu_description?: string | null;
-  special_requests?: string | null;
-  profit_margin?: number;
-  staff_count?: number;
-  staff_hours?: number;
-  include_staff_in_price?: boolean;
-  transport_km?: number;
-  equipment_cost?: number;
-  created_at?: string;
-  updated_at?: string;
-  status: 'draft' | 'quote_sent' | 'confirmed' | 'completed' | 'cancelled';
-  recipes?: EventRecipe[];
-}
-
-export interface EventRecipe {
-  id?: number;
-  event_id?: number;
-  recipe_id: number;
-  servings: number;
-  price_override?: number | null;
-}
-
-// Ingredients
-export async function createIngredient(ingredient: Ingredient): Promise<number> {
-  const userId = await requireUser();
-  const { data, error } = await supabase
-    .from('ingredients')
-    .insert([{ ...ingredient, user_id: userId }] as any)
-    .select('id')
-    .single();
-  if (error) throw error;
-  return (data as any)?.id || 0;
-}
-
-export async function getIngredients() {
-  const userId = await requireUser();
+// Get all ingredients for current user
+export async function getIngredients(): Promise<Ingredient[]> {
   const { data, error } = await supabase
     .from('ingredients')
     .select('*')
-    .eq('user_id', userId);
-  if (error) throw error;
-  return (data || []) as Ingredient[];
+    .order('name')
+
+  if (error) throw error
+  return data || []
 }
 
-export async function updateIngredient(id: number, updates: Partial<Ingredient>) {
-  const { data, error } = await db
+// Create new ingredient
+export async function createIngredient(ingredient: NewIngredient): Promise<Ingredient> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data, error } = await supabase
     .from('ingredients')
-    .update(updates)
-    .eq('id', id)
-    .select();
-  if (error) throw error;
-  return data?.[0];
+    .insert({
+      user_id: user.id,
+      name: ingredient.name,
+      category: ingredient.category,
+      unit: ingredient.unit,
+      price: ingredient.price,
+      supplier: ingredient.supplier,
+      waste_percent: ingredient.waste_percent,
+      notes: ingredient.notes,
+    })
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
 }
 
-export async function deleteIngredient(id: number) {
-  const { error } = await supabase.from('ingredients').delete().eq('id', id);
-  if (error) throw error;
-}
-
-// Recipes
-export async function createRecipe(recipe: Recipe): Promise<number> {
-  const userId = await requireUser();
-  const { data: recipeData, error: recipeError } = await supabase
-    .from('recipes')
-    .insert([{ ...recipe, user_id: userId }] as any)
-    .select('id')
-    .single();
-
-  if (recipeError) throw recipeError;
-  const rd = recipeData as any;
-  if (!rd?.id) throw new Error('Failed to create recipe');
-
-  const recipeId = rd.id;
-
-  // Insert recipe ingredients
-  if (recipe.ingredients && recipe.ingredients.length > 0) {
-    const ingredientsToInsert = recipe.ingredients.map((ing) => ({
-      recipe_id: recipeId,
-      ingredient_id: ing.ingredient_id,
-      quantity: ing.quantity,
-      unit: ing.unit,
-    }));
-
-    const { error: ingredientError } = await supabase
-      .from('recipe_ingredients')
-      .insert(ingredientsToInsert as any);
-
-    if (ingredientError) throw ingredientError;
-  }
-
-  return recipeId;
-}
-
-export async function getRecipe(id: number): Promise<Recipe | null> {
-  const userId = await requireUser();
+// Update ingredient
+export async function updateIngredient(id: number, ingredient: Partial<NewIngredient>): Promise<Ingredient> {
   const { data, error } = await supabase
-    .from('recipes')
-    .select(`
-      *,
-      recipe_ingredients(
-        *,
-        ingredients(*)
-      )
-    `)
+    .from('ingredients')
+    .update(ingredient)
     .eq('id', id)
-    .eq('user_id', userId)
-    .single();
-  if (error) {
-    if (error.code === 'PGRST116') return null;
-    throw error;
-  }
-  return data as Recipe;
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
 }
 
-export async function getRecipes() {
-  const userId = await requireUser();
-  const { data, error } = await supabase
-    .from('recipes')
-    .select(`
-      *,
-      recipe_ingredients(
-        *,
-        ingredients(*)
-      )
-    `)
-    .eq('user_id', userId);
-  if (error) throw error;
-  return (data || []) as Recipe[];
-}
-
-export async function updateRecipe(id: number, updates: Partial<Recipe>) {
-  const { data, error } = await db
-    .from('recipes')
-    .update(updates)
+// Delete ingredient
+export async function deleteIngredient(id: number): Promise<void> {
+  const { error } = await supabase
+    .from('ingredients')
+    .delete()
     .eq('id', id)
-    .select();
-  if (error) throw error;
-  return data?.[0];
-}
 
-export async function deleteRecipe(id: number) {
-  // Delete recipe ingredients first
-  await supabase.from('recipe_ingredients').delete().eq('recipe_id', id);
-  
-  // Delete recipe
-  const { error } = await supabase.from('recipes').delete().eq('id', id);
-  if (error) throw error;
-}
-
-// Events
-export async function createEvent(event: Event): Promise<number> {
-  const userId = await requireUser();
-  const { data: eventData, error: eventError } = await supabase
-    .from('events')
-    .insert([{ ...event, user_id: userId }] as any)
-    .select('id')
-    .single();
-
-  if (eventError) throw eventError;
-  const ed = eventData as any;
-  if (!ed?.id) throw new Error('Failed to create event');
-
-  const eventId = ed.id;
-
-  // Insert event recipes
-  if (event.recipes && event.recipes.length > 0) {
-    const recipesToInsert = event.recipes.map((recipe) => ({
-      event_id: eventId,
-      recipe_id: recipe.recipe_id,
-      servings: recipe.servings,
-      price_override: recipe.price_override,
-    }));
-
-    const { error: recipeError } = await supabase
-      .from('event_recipes')
-      .insert(recipesToInsert as any);
-
-    if (recipeError) throw recipeError;
-  }
-
-  return eventId;
-}
-
-export async function getEvents() {
-  const userId = await requireUser();
-  const { data, error } = await supabase
-    .from('events')
-    .select(`
-      *,
-      event_recipes(
-        *,
-        recipes(
-          *,
-          recipe_ingredients(
-            *,
-            ingredients(*)
-          )
-        )
-      )
-    `)
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
-  if (error) throw error;
-  return (data || []) as Event[];
-}
-
-export async function updateEvent(id: number, updates: Partial<Event>) {
-  const { data, error } = await db
-    .from('events')
-    .update(updates)
-    .eq('id', id)
-    .select();
-  if (error) throw error;
-  return data?.[0];
-}
-
-export async function deleteEvent(id: number) {
-  // Delete event recipes first
-  await supabase.from('event_recipes').delete().eq('event_id', id);
-  
-  // Delete event
-  const { error } = await supabase.from('events').delete().eq('id', id);
-  if (error) throw error;
-}
-
-export async function duplicateRecipe(recipeId: number): Promise<number> {
-  // Get original recipe with ingredients
-  const recipe = await getRecipe(recipeId);
-  if (!recipe) throw new Error('Recipe not found');
-
-  // Create new recipe without ID and ingredients
-  const { id, created_at, updated_at, ingredients, ...recipeData } = recipe;
-  const newRecipeId = await createRecipe({
-    ...recipeData,
-    name: `${recipeData.name} (Copy)`
-  } as Recipe);
-
-  // Copy ingredients if any
-  if (ingredients && ingredients.length > 0) {
-    for (const ing of ingredients) {
-      await supabase.from('recipe_ingredients').insert({
-        recipe_id: newRecipeId,
-        ingredient_id: ing.ingredient_id,
-        quantity: ing.quantity,
-        unit: ing.unit
-      } as any);
-    }
-  }
-
-  return newRecipeId;
-}
-
-// Settings
-export async function getSettings() {
-  const userId = await requireUser();
-  const { data, error } = await supabase
-    .from('settings')
-    .select('*')
-    .eq('user_id', userId)
-    .single();
-  if (error && error.code !== 'PGRST116') throw error;
-  return data;
-}
-
-export async function updateSettings(updates: any) {
-  const userId = await requireUser();
-  const { data, error } = await db
-    .from('settings')
-    .update(updates)
-    .eq('user_id', userId)
-    .select();
-  if (error) throw error;
-  return data?.[0];
-}
-
-// Auth helpers
-export async function getCurrentUser() {
-  const { data: { user } } = await supabase.auth.getUser();
-  return user;
-}
-
-export async function checkAdmin(): Promise<boolean> {
-  // Placeholder - implement with user_roles table if needed
-  return false;
-}
-
-export async function updateEventStatus(id: number, status: string) {
-  const { data, error } = await db
-    .from('events')
-    .update({ status })
-    .eq('id', id)
-    .select();
-  if (error) throw error;
-  return data?.[0];
-}
-
-export async function signOut() {
-  const { error } = await supabase.auth.signOut();
-  if (error) throw error;
+  if (error) throw error
 }

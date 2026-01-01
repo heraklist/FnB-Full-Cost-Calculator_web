@@ -1,1 +1,0 @@
-import"./index-D7UZowsJ.js";import{r as o}from"./vendor-react-KfUPlHYY.js";const e=o.createContext(null);function n(){const t=o.useContext(e);if(!t)throw new Error("useToast must be used within ToastProvider");return t}export{n as u};

@@ -1,1 +1,0 @@
-function e(r){if(!r)return[];try{return JSON.parse(r)}catch{return[]}}function u(r){return JSON.stringify(r)}function a(r){return r.reduce((n,t)=>t.frequency==="yearly"?n+t.amount/12:n+t.amount,0)}function i(){return Date.now().toString(36)+Math.random().toString(36).substr(2)}export{a as c,i as g,e as p,u as s};
