@@ -8,9 +8,9 @@ export interface Ingredient {
   category: string;
   unit: string;
   price: number;
-  supplier?: string | null;
+  supplier?: string;
   waste_percent?: number;
-  notes?: string | null;
+  notes?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -22,7 +22,7 @@ export interface Recipe {
   category: string;
   servings: number;
   prep_time_minutes: number;
-  notes?: string | null;
+  notes?: string;
   created_at?: string;
   updated_at?: string;
   ingredients?: RecipeIngredient[];
@@ -47,7 +47,7 @@ export interface Event {
   event_date?: string | null;
   event_location?: string | null;
   guests: number;
-  pricing_mode: 'per_person' | 'fixed' | 'per_event';
+  pricing_mode: 'per_person' | 'per_event';
   menu_description?: string | null;
   special_requests?: string | null;
   profit_margin?: number;
@@ -58,7 +58,7 @@ export interface Event {
   equipment_cost?: number;
   created_at?: string;
   updated_at?: string;
-  status: 'draft' | 'confirmed' | 'completed' | 'cancelled';
+  status: 'draft' | 'quote_sent' | 'confirmed' | 'completed' | 'cancelled';
   recipes?: EventRecipe[];
 }
 
@@ -232,10 +232,6 @@ export async function updateEvent(id: number, updates: Partial<Event>) {
   return data?.[0];
 }
 
-export async function updateEventStatus(id: number, status: string) {
-  return updateEvent(id, { status: status as any });
-}
-
 export async function deleteEvent(id: number) {
   // Delete event recipes first
   await supabase.from('event_recipes').delete().eq('event_id', id);
@@ -243,6 +239,33 @@ export async function deleteEvent(id: number) {
   // Delete event
   const { error } = await supabase.from('events').delete().eq('id', id);
   if (error) throw error;
+}
+
+export async function duplicateRecipe(recipeId: number): Promise<Recipe | undefined> {
+  // Get original recipe with ingredients
+  const recipe = await getRecipe(recipeId);
+  if (!recipe) return undefined;
+
+  // Create new recipe without ID and ingredients
+  const { id, created_at, updated_at, ingredients, ...recipeData } = recipe;
+  const newRecipe = await createRecipe({
+    ...recipeData,
+    name: `${recipeData.name} (Copy)`
+  });
+
+  // Copy ingredients if any
+  if (ingredients && ingredients.length > 0 && newRecipe?.id) {
+    for (const ing of ingredients) {
+      await supabase.from('recipe_ingredients').insert({
+        recipe_id: newRecipe.id,
+        ingredient_id: ing.ingredient_id,
+        quantity: ing.quantity,
+        unit: ing.unit
+      });
+    }
+  }
+
+  return newRecipe;
 }
 
 // Settings

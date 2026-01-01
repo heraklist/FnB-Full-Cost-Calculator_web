@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, RenderOptions } from '@testing-library/react';
+import { vi } from 'vitest';
 
 const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
@@ -37,4 +38,4 @@ export function createMockIngredient(overrides?: any) {
   };
 }
 
-export const mockInvoke = jest.fn();
+export const mockInvoke = vi.fn();
