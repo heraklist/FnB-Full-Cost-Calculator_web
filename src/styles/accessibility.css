@@ -1,0 +1,71 @@
+/* Accessibility & Focus Styles */
+
+/* Custom focus-visible for all interactive elements */
+:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px var(--color-primary-100, var(--bg-light));
+  transition: box-shadow 0.2s;
+}
+
+/* Buttons, inputs, cards */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.card:focus-visible {
+  outline: 2px solid var(--color-primary, var(--brand-primary));
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px var(--color-primary-100, var(--bg-light));
+}
+
+/* Skip link styles */
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  z-index: 1000;
+  background: var(--brand-primary);
+  color: var(--text-white);
+  padding: 0.5em 1em;
+  border-radius: 0.375em;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, top 0.2s;
+}
+.skip-link:focus {
+  opacity: 1;
+  pointer-events: auto;
+  top: 16px;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+.skip-link:focus {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  width: auto;
+  height: auto;
+  padding: 16px 24px;
+  background: var(--brand-primary);
+  color: white;
+  border-radius: var(--radius-lg);
+  z-index: 9999;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
