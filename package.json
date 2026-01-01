@@ -12,9 +12,14 @@
     "test:coverage": "vitest --coverage"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.45.0",
     "@supabase/auth-ui-react": "^0.4.7",
     "@supabase/auth-ui-shared": "^0.1.8",
+    "@supabase/supabase-js": "^2.45.0",
+    "@tanstack/react-virtual": "^3.13.14",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
+    "@testing-library/user-event": "^14.6.1",
+    "papaparse": "^5.5.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zustand": "^5.0.0"
