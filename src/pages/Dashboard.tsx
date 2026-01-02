@@ -9,7 +9,7 @@ const COLORS = ['#6366F1', '#F43F5E', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('el-GR', {
     style: 'currency',
-    currency: 'EUR',
+    currency: 'USD',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(value)
