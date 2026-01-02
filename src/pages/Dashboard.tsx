@@ -6,6 +6,15 @@ import type { Ingredient, Recipe, Event, Transaction } from '../lib/api'
 
 const COLORS = ['#6366F1', '#F43F5E', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899']
 
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('el-GR', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(value)
+}
+
 const StatCard = ({ title, value, trend, trendValue, icon: Icon, color }: any) => (
   <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
     <div className="flex items-center justify-between">
@@ -158,7 +167,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Συνολικά Έσοδα"
-          value={`€${totalIncome.toFixed(2)}`}
+          value={formatCurrency(totalIncome)}
           trend="up"
           trendValue="+12.5%"
           icon={DollarSign}
@@ -166,7 +175,7 @@ export default function Dashboard() {
         />
         <StatCard
           title="Κόστος Πρώτων Υλών"
-          value={`€${totalExpense.toFixed(2)}`}
+          value={formatCurrency(totalExpense)}
           trend="down"
           trendValue="-2.4%"
           icon={TrendingUp}
@@ -174,7 +183,7 @@ export default function Dashboard() {
         />
         <StatCard
           title="Μικτό Κέρδος"
-          value={`€${profit.toFixed(2)}`}
+          value={formatCurrency(profit)}
           trend="up"
           trendValue="+8.2%"
           icon={BarChart3}
@@ -280,7 +289,7 @@ export default function Dashboard() {
         />
         <StatCard
           title="Σύνολο Κόστος"
-          value={`€${totalRecipesCost.toFixed(2)}`}
+          value={formatCurrency(totalRecipesCost)}
           icon={ChefHat}
           color="bg-orange-500"
         />
@@ -295,7 +304,7 @@ export default function Dashboard() {
               {topIngredients.map((ing, index) => (
                 <div key={index} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                   <span className="text-gray-700 dark:text-gray-300 font-medium">{ing.name}</span>
-                  <span className="text-indigo-600 dark:text-indigo-400 font-semibold">€{ing.price.toFixed(2)}</span>
+                  <span className="text-indigo-600 dark:text-indigo-400 font-semibold">{formatCurrency(ing.price)}</span>
                 </div>
               ))}
             </div>
