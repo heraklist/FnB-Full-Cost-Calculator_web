@@ -351,10 +351,11 @@ export default function Dashboard() {
                 <YAxis stroke="#6B7280" />
                 <Tooltip
                   contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '0.5rem', color: '#F3F4F6' }}
+                  formatter={(value: any) => formatCurrency(typeof value === 'number' ? value : 0)}
                 />
                 <Legend />
-                <Bar dataKey="cost" fill="#F59E0B" name="Σύνολο Κόστος" />
-                <Bar dataKey="costPerServing" fill="#3B82F6" name="Κόστος ανά Μερίδα" />
+                <Bar dataKey="cost" fill="#F59E0B" name="Σύνολο Κόστος" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="costPerServing" fill="#3B82F6" name="Κόστος ανά Μερίδα" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
