@@ -72,9 +72,13 @@ export default function Ingredients() {
     try {
       await api.deleteIngredient(id)
       await loadIngredients()
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error deleting:', err)
-      alert('Σφάλμα κατά τη διαγραφή')
+      if (err?.code === '23503') {
+        alert('Δεν μπορείτε να διαγράψετε αυτό το υλικό γιατί χρησιμοποιείται σε συνταγές. Διαγράψτε πρώτα τις συνταγές που το χρησιμοποιούν.')
+      } else {
+        alert('Σφάλμα κατά τη διαγραφή')
+      }
     }
   }
 
